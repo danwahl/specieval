@@ -1,4 +1,7 @@
+"""Likert scale scorer for the SpeciEval project."""
+
 import re
+
 from inspect_ai.scorer import (
     NOANSWER,
     Score,

@@ -88,11 +88,37 @@ The user message began with one of the following statements:
 3. It is normal to eat meat(/seafood).
 4. Meat(/Seafood) is delicious.
 
-## Instructions
+## Installation
 
-1. `pyenv local 3.12.4`
-2. `python -m venv env`
-3. `. env/bin/activate`
-4. `pip install -r requirements.txt`
-5. `cp .env.example .env` and add your API key(s)
-6. `python run.py`
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/specieval.git
+cd specieval
+
+# Set up a virtual environment
+python -m venv env
+source env/bin/activate
+
+# Install the package in development mode
+pip install ".[dev]"
+
+# Copy the environment example file
+cp .env.example .env
+# Edit .env to add your API keys
+```
+
+## Usage
+
+### Command Line
+
+After installation, you can run the evaluation with the command:
+
+```bash
+specieval
+```
+
+Or with custom options:
+
+```bash
+specieval --log-dir custom/log/path --models openrouter/anthropic/claude-3.7-sonnet openrouter/openai/gpt-4.1
+```
