@@ -64,7 +64,7 @@ class Translations:
         lang_code = str(language)
 
         # Find the row with the matching ID
-        row = self.df[self.df["id"] == string_id]
+        row = self.df[self.df["string_id"] == string_id]
 
         if row.empty:
             raise KeyError(f"String ID not found: {string_id}")
