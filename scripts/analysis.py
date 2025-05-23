@@ -141,6 +141,8 @@ if __name__ == "__main__":
     logs_paths = [
         Path("../logs/specieval/logs.json"),
         Path("../logs/claude-4/logs.json"),
+        Path("../logs/gemini-2.5-flash/logs.json"),
+        Path("../logs/mistral-medium-3/logs.json"),
     ]
 
     data = pd.DataFrame()
