@@ -23,6 +23,7 @@ dependencies = [
 dev = [
     "matplotlib",
     "ruff",
+    "tabulate",
 ]
 
 [project.scripts]
