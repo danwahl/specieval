@@ -1,0 +1,29 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build README page
+        run: |
+          echo '<!DOCTYPE html><html><head><title>${{ github.event.repository.name }}</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.min.css"><style>.markdown-body{max-width:800px;margin:0 auto;padding:20px}</style></head><body><div class="markdown-body">' > index.html
+          npx marked README.md >> index.html
+          echo '</div></body></html>' >> index.html
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
