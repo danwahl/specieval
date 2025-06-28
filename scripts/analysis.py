@@ -208,7 +208,7 @@ if __name__ == "__main__":
     models = languages.index.get_level_values(0).unique()
 
     # Create figure with subplots (one for each model) - more space
-    fig, axes = plt.subplots(1, len(models), figsize=(12, 8))
+    fig, axes = plt.subplots(1, len(models), figsize=(12, 7))
 
     # Loop over models and create tables
     for i, model in enumerate(models):
