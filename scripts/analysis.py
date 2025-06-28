@@ -115,8 +115,8 @@ def plot_assessment(ax, assessment, title, countries, models):
     ax.set_title(title)
     ax.set_xlabel("Z-score")
 
-    ax.set_xlim(-1.6, 1.6)
-    ax.set_xticks(np.arange(-1.6, 2, 0.4))
+    ax.set_xlim(-2.0, 2.0)
+    ax.set_xticks(np.arange(-2, 2.4, 0.4))
     ax.grid(True)
 
 
@@ -144,6 +144,12 @@ if __name__ == "__main__":
         Path("../logs/claude-4/logs.json"),
         Path("../logs/gemini-2.5-flash/logs.json"),
         Path("../logs/mistral-medium-3/logs.json"),
+        Path("../logs/gemini-2.5/logs.json"),
+    ]
+
+    exclude_models = [
+        "gemini-2.5-flash-preview-05-20",
+        "gemini-2.5-pro-preview-03-25",
     ]
 
     data = pd.DataFrame()
@@ -154,6 +160,8 @@ if __name__ == "__main__":
             )
             # Strip _task from column names
             df_logs.columns = df_logs.columns.str.replace("_task", "")
+            # Filter out models that should be excluded
+            df_logs = df_logs[~df_logs.index.isin(exclude_models)]
             data = pd.concat([data, df_logs], axis=0)
     data.sort_index(inplace=True)
 
