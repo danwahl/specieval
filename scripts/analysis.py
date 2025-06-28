@@ -4,6 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.colors import TwoSlopeNorm
 
 
 def parse_logs(logs_path):
@@ -183,3 +184,88 @@ if __name__ == "__main__":
 
     plt.tight_layout()
     fig.savefig("../images/chart.png", bbox_inches="tight", dpi=300)
+
+    # Language test
+    logs_path = Path("../logs/lang-test/logs.json")
+    if logs_path.exists():
+        data = parse_logs(logs_path).pivot_table(
+            index=["model", "language"], columns="task", values="score"
+        )
+        # Strip _task from column names
+        data.columns = data.columns.str.replace("_task", "")
+
+    languages = data.rename(columns=task_to_assessment)[task_to_assessment.values()]
+
+    # Get unique models from the first level of the MultiIndex
+    models = languages.index.get_level_values(0).unique()
+
+    # Create figure with subplots (one for each model) - more space
+    fig, axes = plt.subplots(1, len(models), figsize=(12, 8))
+
+    # Loop over models and create tables
+    for i, model in enumerate(models):
+        model_data = languages.loc[model]
+
+        # Get English baseline
+        en_baseline = model_data.loc["en"]
+
+        # Calculate differences from English
+        diff_from_en = model_data.subtract(en_baseline, axis=1)
+
+        # Combine all differences to get min/max
+        vmin, vmax = diff_from_en.min().min(), diff_from_en.max().max()
+        norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+
+        # Create table
+        table = axes[i].table(
+            cellText=model_data.round(2).values,  # Round to 2 decimals for cleaner look
+            rowLabels=model_data.index,
+            colLabels=model_data.columns,
+            cellLoc="center",
+            loc="center",
+        )
+
+        # Color cells based on difference from English
+        for row_idx, lang in enumerate(model_data.index):
+            for col_idx, task in enumerate(model_data.columns):
+                diff_val = diff_from_en.loc[lang, task]
+
+                # Adjust color direction based on what "animal-friendly" means
+                if task == "bfas":
+                    color_val = diff_val
+                else:
+                    color_val = -diff_val
+
+                color = plt.cm.PiYG(norm(color_val))
+                table[(row_idx + 1, col_idx)].set_facecolor(color)
+
+                # Set text color to be white if the background is dark
+                if np.mean(color[:3]) < 0.5:  # Check if the RGB values are dark
+                    table[(row_idx + 1, col_idx)].set_text_props(color="white")
+
+        # Style improvements
+        axes[i].set_title(model, fontsize=16, fontweight="bold", pad=20)
+        axes[i].axis("off")
+
+        # Adjust table properties for better readability
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(1.4, 2.0)  # More vertical spacing
+
+        # Remove ugly grid lines and improve borders
+        for key, cell in table.get_celld().items():
+            cell.set_linewidth(0.5)
+            cell.set_edgecolor("lightgray")
+
+            # Make header row stand out
+            if key[0] == 0:  # Header row
+                cell.set_text_props(weight="bold")
+                cell.set_facecolor("#f0f0f0")
+
+            # Make row labels stand out
+            if key[1] == -1:  # Row labels
+                cell.set_text_props(weight="bold")
+                cell.set_facecolor("#f8f8f8")
+
+    plt.tight_layout(pad=2.0)  # Add more padding
+    plt.savefig("../images/table.png", bbox_inches="tight", dpi=300)
