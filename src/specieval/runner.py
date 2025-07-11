@@ -41,6 +41,7 @@ def run_eval(log_dir="logs/specieval", models=None, languages=None):
             "openrouter/x-ai/grok-3-mini",
             "openrouter/x-ai/grok-3-mini-beta",
             "openrouter/x-ai/grok-4",
+            "openrouter/anthropic/claude-3-opus",
         ]
 
     if languages is None:
