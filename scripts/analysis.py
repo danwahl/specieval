@@ -201,6 +201,7 @@ if __name__ == "__main__":
         Path("../logs/deepseek-r1/logs.json"),
         Path("../logs/llama-4/logs.json"),
         Path("../logs/gemini-flash-lite/logs.json"),
+        Path("../logs/gpt-oss-120b/logs.json"),
     ]
 
     exclude_models = [
