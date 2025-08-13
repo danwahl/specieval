@@ -207,6 +207,7 @@ if __name__ == "__main__":
         Path("../logs/z-ai-glm-4.5/logs.json"),
         Path("../logs/gpt-5/logs.json"),
         Path("../logs/gpt-5-other/logs.json"),
+        Path("../logs/mistral-medium-3.1/logs.json"),
     ]
 
     exclude_models = [
@@ -271,7 +272,7 @@ if __name__ == "__main__":
 
     models = (models - means) / stds
 
-    fig, axes = plt.subplots(2, 2, figsize=(20, 20))
+    fig, axes = plt.subplots(2, 2, figsize=(20, 22))
     titles = [
         "Speciesism",
         "Belief in Animal Sentience",
