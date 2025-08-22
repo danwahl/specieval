@@ -209,6 +209,7 @@ if __name__ == "__main__":
         Path("../logs/gpt-5-other/logs.json"),
         Path("../logs/mistral-medium-3.1/logs.json"),
         Path("../logs/inception-mercury/logs.json"),
+        Path("../logs/deepseek-3.1/logs.json"),
     ]
 
     exclude_models = [
