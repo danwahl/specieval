@@ -59,7 +59,10 @@ def run_eval(log_dir="logs/specieval", models=None, languages=None):
             "openrouter/openai/gpt-5-chat",
             "openrouter/mistralai/mistral-medium-3.1",
             "openrouter/inception/mercury",
-            "openrouter/deepseek/deepseek-chat-v3.1"
+            "openrouter/deepseek/deepseek-chat-v3.1",
+            "openrouter/qwen/qwen3-30b-a3b",
+            "openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+            "openrouter/qwen/qwen3-30b-a3b-thinking-2507",
         ]
 
     if languages is None:
