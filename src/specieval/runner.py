@@ -63,6 +63,7 @@ def run_eval(log_dir="logs/specieval", models=None, languages=None):
             "openrouter/qwen/qwen3-30b-a3b",
             "openrouter/qwen/qwen3-30b-a3b-instruct-2507",
             "openrouter/qwen/qwen3-30b-a3b-thinking-2507",
+            "openrouter/x-ai/grok-code-fast-1",
         ]
 
     if languages is None:
