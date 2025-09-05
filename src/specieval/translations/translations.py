@@ -33,14 +33,18 @@ class Language(str, Enum):
 class Translations:
     """Manages translations for the SpeciEval project."""
 
-    def __init__(self, path: Path = None):
+    def __init__(self, path: Path = None, reverse: bool = False):
         """Initialize the translations manager.
 
         Args:
             path: Path to the translations CSV file. If None, uses default path.
+            reverse: Whether to use reverse translations.
         """
         if path is None:
-            path = Path(__file__).parent / "data" / "translations.csv"
+            if reverse:
+                path = Path(__file__).parent / "data" / "translations-reverse.csv"
+            else:
+                path = Path(__file__).parent / "data" / "translations.csv"
 
         self.df = pd.read_csv(path, comment="#")
 
@@ -84,7 +88,3 @@ class Translations:
             value = value.format(**format_args)
 
         return value
-
-
-# Create a singleton instance
-translations = Translations()
