@@ -213,6 +213,7 @@ if __name__ == "__main__":
         Path("../logs/qwen-30b-a3b/logs.json"),
         Path("../logs/grok-code-fast-1/logs.json"),
         Path("../logs/kimi-k2-0905/logs.json"),
+        Path("../logs/qwen3-max/logs.json"),
     ]
 
     exclude_models = [
