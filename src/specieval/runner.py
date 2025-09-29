@@ -66,6 +66,7 @@ def run_eval(log_dir="logs/specieval", models=None, languages=None, reverse=Fals
             "openrouter/x-ai/grok-code-fast-1",
             "openrouter/moonshotai/kimi-k2-0905",
             "openrouter/qwen/qwen3-max",
+            "openrouter/anthropic/claude-sonnet-4.5",
         ]
 
     if languages is None:
