@@ -13,10 +13,10 @@ authors = [
     {name = "Dan Wahl", email = "hi@danwahl.net"}
 ]
 dependencies = [
-    "inspect-ai",
+    "inspect-ai @ git+https://github.com/danwahl/inspect_ai.git@fix-reductions-bug",
     "openai",
     "pandas",
-    "textual",
+    "textual==3.1.1",
 ]
 
 [project.optional-dependencies]
@@ -43,3 +43,6 @@ ignore = ["E501"]
 
 [tool.setuptools]
 package-data = {"specieval" = ["translations/data/*.csv"]}
+
+[project.entry-points.inspect_ai]
+specieval = "specieval.tasks"
