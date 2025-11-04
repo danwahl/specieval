@@ -220,6 +220,10 @@ if __name__ == "__main__":
         Path("../logs/claude-haiku-4.5/logs.json"),
         Path("../logs/o4-mini-deep-research/logs.json"),
         Path("../logs/gpt-5-pro/logs.json"),
+        Path("../logs/minimax-01/logs.json"),
+        Path("../logs/minimax-m1/logs.json"),
+        Path("../logs/minimax-m2/logs.json"),
+        Path("../logs/amazon-nova/logs.json"),
     ]
 
     exclude_models = [
