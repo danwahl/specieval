@@ -7,7 +7,7 @@ name = "specieval"
 version = "0.1.0"
 description = "Evaluating LLM attitudes towards animals, based on Hopwood et al., 2025"
 readme = "README.md"
-requires-python = ">=3.12.4"
+requires-python = ">=3.10,<3.14"
 license = {text = "MIT"}
 authors = [
     {name = "Dan Wahl", email = "hi@danwahl.net"}
@@ -29,9 +29,6 @@ dev = [
     "ruff",
     "tabulate",
 ]
-
-[project.scripts]
-specieval = "specieval.runner:main"
 
 [tool.ruff]
 line-length = 88

@@ -1,62 +1,101 @@
+import argparse
 import json
+import logging
 from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.colors import TwoSlopeNorm
+from matplotlib.axes import Axes
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
-def parse_logs(logs_path):
-    with open(logs_path, "r") as f:
-        logs = json.load(f)
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="Generate SpeciEval analysis charts")
+    parser.add_argument(
+        "--logs-dir",
+        default="logs",
+        help="Directory containing log subdirs with logs.json (default: logs)",
+    )
+    parser.add_argument(
+        "--data-file",
+        required=True,
+        help="Path to Hopwood et al. attitudes data CSV",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="images",
+        help="Directory to save output images (default: images)",
+    )
+    return parser.parse_args()
 
-    scores = []
-    samples = []
+
+def parse_logs(logs_path: Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Parse a single logs.json file."""
+    try:
+        with open(logs_path, "r") as f:
+            logs = json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        logger.warning(f"Failed to read {logs_path}: {e}")
+        return pd.DataFrame(), pd.DataFrame()
+
+    scores: List[Dict[str, Any]] = []
+    samples: List[Dict[str, Any]] = []
+
     for _, log in logs.items():
-        if log.get("status") == "success":
-            model = log["eval"]["model"]
-            model_short = model.split("/")[-1]
+        if log.get("status") != "success":
+            continue
 
-            task_registry_name = log["eval"]["task_registry_name"]
-            task = task_registry_name.split("/")[-1]
+        model = log["eval"]["model"]
+        model_short = model.split("/")[-1]
 
-            language = log["eval"]["task_args"].get("language", "en")
+        task_registry_name = log["eval"]["task_registry_name"]
+        task = task_registry_name.split("/")[-1]
 
-            try:
-                score = log["results"]["scores"][0]["metrics"]["mean"]["value"]
-            except (KeyError, IndexError):
-                score = None
+        language = log["eval"]["task_args"].get("language", "en")
 
-            scores.append(
-                {
-                    "model": model_short,
-                    "task": task,
-                    "language": language,
-                    "score": score,
-                }
-            )
+        try:
+            score = log["results"]["scores"][0]["metrics"]["mean"]["value"]
+        except (KeyError, IndexError):
+            score = None
 
-            try:
-                for sample in log["reductions"][0]["samples"]:
-                    sample_id = sample.get("sample_id")
-                    if sample_id:
-                        samples.append(
-                            {
-                                "model": model_short,
-                                "language": language,
-                                "question": sample_id,
-                                "score": sample.get("value", 0),
-                            }
-                        )
-            except (KeyError, IndexError):
-                pass
+        scores.append(
+            {
+                "model": model_short,
+                "task": task,
+                "language": language,
+                "score": score,
+            }
+        )
+
+        try:
+            for sample in log["reductions"][0]["samples"]:
+                sample_id = sample.get("sample_id")
+                if sample_id:
+                    samples.append(
+                        {
+                            "model": model_short,
+                            "language": language,
+                            "question": sample_id,
+                            "score": sample.get("value", 0),
+                        }
+                    )
+        except (KeyError, IndexError):
+            pass
 
     return pd.DataFrame(scores), pd.DataFrame(samples)
 
 
-def aggregate_samples(samples, questions):
-    reverse_score_prefixes = ["spec_", "la4N_", "se4N_"]  # These need reverse scoring
+def aggregate_samples(samples: pd.DataFrame, questions: List[str]) -> pd.Series:
+    """Aggregate sample scores with reverse scoring."""
+    reverse_score_prefixes = ["spec_", "la4N_", "se4N_"]
 
     aggregated = pd.Series(
         index=samples.index,
@@ -65,20 +104,18 @@ def aggregate_samples(samples, questions):
 
     for ind in aggregated.index:
         s = samples.loc[ind]
-        total = 0
+        total = 0.0
         count = 0
 
         for q in questions:
             if q in s.index and pd.notna(s[q]):
                 sample = s[q]
-                # Apply reverse scoring if needed
                 if any(q.startswith(prefix) for prefix in reverse_score_prefixes):
-                    sample = 8 - sample  # Reverse: 1→7, 2→6, ..., 7→1
+                    sample = 8 - sample
                 total += sample
                 count += 1
 
         if count == len(questions):
-            # Normalize to 0-100 scale
             min_possible = 1 * len(questions)
             max_possible = 7 * len(questions)
             aggregated[ind] = (
@@ -88,10 +125,20 @@ def aggregate_samples(samples, questions):
     return aggregated
 
 
-def plot_assessment(ax, assessment, title, countries, models):
-    # Plot the data
+def plot_assessment(
+    ax: Axes,
+    assessment: str,
+    title: str,
+    countries: pd.DataFrame,
+    models: pd.DataFrame,
+) -> None:
+    """Plot data for a specific assessment."""
     s = pd.concat([countries[assessment], models[assessment]], axis=0)
-    s -= s.loc["USA"]
+
+    if "USA" not in s.index:
+        logger.warning(f"USA data missing for {assessment}, skipping normalization.")
+    else:
+        s -= s.loc["USA"]
 
     western_countries = [
         "USA",
@@ -109,46 +156,61 @@ def plot_assessment(ax, assessment, title, countries, models):
         "Spain",
         "UK",
     ]
+    western_countries = [c for c in western_countries if c in s.index]
+
     eastern_countries = countries.index.difference(
         western_countries + ["Russia"]
     ).tolist()
+    eastern_countries = [c for c in eastern_countries if c in s.index]
 
-    # Create specific order with Russia between Western and Eastern
+    usa_part = s.loc[["USA"]] if "USA" in s.index else pd.Series(dtype=float)
+    western_part = s.loc[[c for c in western_countries if c != "USA"]].sort_index()
+    russia_part = s.loc[["Russia"]] if "Russia" in s.index else pd.Series(dtype=float)
+    eastern_part = s.loc[eastern_countries].sort_index()
+    models_part = s.loc[models.index].sort_index()
+
     sorted_data = pd.concat(
-        [
-            s.loc[["USA"]],
-            s.loc[[c for c in western_countries if c != "USA"]].sort_index(),
-            s.loc[["Russia"]],
-            s.loc[eastern_countries].sort_index(),
-            s.loc[models.index].sort_index(),
-        ]
+        [usa_part, western_part, russia_part, eastern_part, models_part]
     )[::-1]
 
     names = sorted_data.index.tolist()
     values = sorted_data.values
     y_pos = np.arange(len(names))
 
-    # Create indices for each group
     western_indices = [i for i, c in enumerate(names) if c in western_countries]
     eastern_indices = [i for i, c in enumerate(names) if c in eastern_countries]
     russia_indices = [i for i, c in enumerate(names) if c == "Russia"]
     model_indices = [i for i, c in enumerate(names) if c in models.index]
 
-    # Plot markers for each group
     ax.scatter(
-        values[western_indices], y_pos[western_indices], color="blue", marker="s", s=40
+        values[western_indices],
+        y_pos[western_indices],
+        color="blue",
+        marker="s",
+        s=40,
     )
     ax.scatter(
-        values[eastern_indices], y_pos[eastern_indices], color="red", marker="^", s=40
+        values[eastern_indices],
+        y_pos[eastern_indices],
+        color="red",
+        marker="^",
+        s=40,
     )
     ax.scatter(
-        values[russia_indices], y_pos[russia_indices], color="gray", marker="o", s=40
+        values[russia_indices],
+        y_pos[russia_indices],
+        color="gray",
+        marker="o",
+        s=40,
     )
     ax.scatter(
-        values[model_indices], y_pos[model_indices], color="green", marker="D", s=40
+        values[model_indices],
+        y_pos[model_indices],
+        color="green",
+        marker="D",
+        s=40,
     )
 
-    # Plot connecting lines
     for i, val in enumerate(values):
         if names[i] in western_countries:
             ax.plot([0, val], [y_pos[i], y_pos[i]], "b-", alpha=0.7)
@@ -163,82 +225,55 @@ def plot_assessment(ax, assessment, title, countries, models):
     ax.set_yticklabels(names)
     ax.set_title(title)
     ax.set_xlabel("Z-score")
-
     ax.set_xlim(-2.0, 2.0)
     ax.set_xticks(np.arange(-2, 2.4, 0.4))
     ax.grid(True)
 
 
-if __name__ == "__main__":
-    # Grab the data from Hopwood et.al. (2025) here: https://osf.io/kdgtx/?view_only=bf22ece589864c73999c987d5ee0b532
-    df = pd.read_csv("data/attitudes data.csv", sep=";")
+def main() -> None:
+    args = parse_args()
+    logs_dir, data_file, output_dir = (
+        Path(args.logs_dir),
+        Path(args.data_file),
+        Path(args.output_dir),
+    )
+
+    if not logs_dir.exists() or not data_file.exists():
+        logger.error("Logs directory or data file not found.")
+        return
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        df = pd.read_csv(data_file, sep=";")
+    except Exception as e:
+        logger.error(f"Failed to read data file: {e}")
+        return
 
     assessments = ["spec", "bfas", "la4N", "se4N"]
     for assessment in assessments:
-        # Get data corresponding to the assessment
         cols = [col for col in df.columns if assessment in col]
-        data = df[cols]
+        if cols:
+            df[assessment] = df[cols].mean(axis=1)
 
-        # Compute assessment scores
-        df[assessment] = data.mean(axis=1)
-
-    # Get z-scores for each country
     countries = df.groupby("Country")[assessments].mean()
     means, stds = df[assessments].mean(), df[assessments].std()
     countries = (countries - means) / stds
 
-    # Parse the SpeciEval logs
-    logs_paths = [
-        Path("../logs/specieval/logs.json"),
-        Path("../logs/claude-4/logs.json"),
-        Path("../logs/gemini-2.5-flash/logs.json"),
-        Path("../logs/mistral-medium-3/logs.json"),
-        Path("../logs/gemini-2.5/logs.json"),
-        Path("../logs/grok-4/logs.json"),
-        Path("../logs/grok-3/logs.json"),
-        Path("../logs/claude-3-opus/logs.json"),
-        Path("../logs/kimi-k2/logs.json"),
-        Path("../logs/deepseek-r1/logs.json"),
-        Path("../logs/llama-4/logs.json"),
-        Path("../logs/gemini-flash-lite/logs.json"),
-        Path("../logs/gpt-oss-120b/logs.json"),
-        Path("../logs/gpt-oss-20b/logs.json"),
-        Path("../logs/claude-opus-4.1/logs.json"),
-        Path("../logs/z-ai-glm-4.5/logs.json"),
-        Path("../logs/gpt-5/logs.json"),
-        Path("../logs/gpt-5-other/logs.json"),
-        Path("../logs/mistral-medium-3.1/logs.json"),
-        Path("../logs/inception-mercury/logs.json"),
-        Path("../logs/deepseek-3.1/logs.json"),
-        Path("../logs/qwen-30b-a3b/logs.json"),
-        Path("../logs/grok-code-fast-1/logs.json"),
-        Path("../logs/kimi-k2-0905/logs.json"),
-        Path("../logs/qwen3-max/logs.json"),
-        Path("../logs/claude-sonnet-4.5/logs.json"),
-        Path("../logs/deepseek-3.2-exp/logs.json"),
-        Path("../logs/z-ai-glm-4.6/logs.json"),
-        Path("../logs/claude-haiku-4.5/logs.json"),
-        Path("../logs/o4-mini-deep-research/logs.json"),
-        Path("../logs/gpt-5-pro/logs.json"),
-        Path("../logs/minimax-01/logs.json"),
-        Path("../logs/minimax-m1/logs.json"),
-        Path("../logs/minimax-m2/logs.json"),
-        Path("../logs/amazon-nova/logs.json"),
-        Path("../logs/gpt-5.1/logs.json"),
-        Path("../logs/gemini-3-pro-preview/logs.json"),
-        Path("../logs/grok-4.1-fast/logs.json"),
-        Path("../logs/claude-opus-4.5/logs.json"),
-        Path("../logs/deepseek-3.2/logs.json"),
-        Path("../logs/gpt-5.2/logs.json"),
-        Path("../logs/gpt-5.2-chat/logs.json"),
-        Path("../logs/gpt-5.2-pro/logs.json"),
-        Path("../logs/gemini-3-flash-preview/logs.json"),
-    ]
+    logs_paths = sorted(list(logs_dir.glob("**/logs.json")))
+    logger.info(f"Found {len(logs_paths)} log files.")
 
-    exclude_models = [
-        "gemini-2.5-flash-preview-05-20",
-        "gemini-2.5-pro-preview-03-25",
-    ]
+    # Load allowed models
+    allowed_models_path = Path(__file__).parent / "allowed_models.json"
+    if allowed_models_path.exists():
+        with open(allowed_models_path, "r") as f:
+            allowed_models = set(json.load(f))
+    else:
+        logger.warning(
+            f"Allowed models file not found at {allowed_models_path}. "
+            "No filtering will be applied."
+        )
+        allowed_models = None
 
     questions = [
         "spec_1",
@@ -255,29 +290,38 @@ if __name__ == "__main__":
         "se4N_2",
     ]
 
-    data = pd.DataFrame()
+    data_df = pd.DataFrame()
     for logs_path in logs_paths:
-        if logs_path.exists():  # Check if file exists to avoid errors
-            scores, samples = parse_logs(logs_path)
+        scores, samples = parse_logs(logs_path)
+        if scores.empty:
+            continue
 
-            df_scores = scores.pivot_table(
-                index="model", columns="task", values="score"
-            )
-            # Strip _task from column names
-            df_scores.columns = df_scores.columns.str.replace("_task", "")
-            # Filter out models that should be excluded
-            df_scores = df_scores[~df_scores.index.isin(exclude_models)]
+        df_scores = scores.pivot_table(index="model", columns="task", values="score")
+        df_scores.columns = df_scores.columns.str.replace("_task", "")
 
+        # Filter allowed models
+        if allowed_models is not None:
+            df_scores = df_scores[df_scores.index.isin(allowed_models)]
+
+        if df_scores.empty:
+            continue
+
+        if not samples.empty:
             df_samples = samples.pivot_table(
-                index=["model"], columns="question", values="score"
+                index="model", columns="question", values="score"
             )
-            df_samples = df_samples[~df_samples.index.isin(exclude_models)]
-            aggregated = aggregate_samples(df_samples, questions)
-            df_scores["aggregated"] = aggregated
+            if allowed_models is not None:
+                df_samples = df_samples[df_samples.index.isin(allowed_models)]
+            df_scores["aggregated"] = aggregate_samples(df_samples, questions)
+        else:
+            df_scores["aggregated"] = np.nan
+        data_df = pd.concat([data_df, df_scores], axis=0)
 
-            data = pd.concat([data, df_scores], axis=0)
-    data.sort_index(inplace=True)
+    if data_df.empty:
+        logger.error("No valid data extracted.")
+        return
 
+    data_df = data_df.groupby(level=0).mean()
     task_to_assessment = {
         "aggregated": "specieval",
         "speciesism": "spec",
@@ -286,17 +330,18 @@ if __name__ == "__main__":
         "attitude_seafood": "se4N",
     }
 
-    models = data.rename(columns=task_to_assessment).sort_values(
+    for c in [k for k in task_to_assessment.keys() if k not in data_df.columns]:
+        data_df[c] = np.nan
+
+    models_df = data_df.rename(columns=task_to_assessment).sort_values(
         "specieval", ascending=False
     )
-    formatted_data = models[task_to_assessment.values()]
-    formatted_data.reset_index(inplace=True)
-    formatted_data.index = range(1, len(formatted_data) + 1)
-    formatted_data.index.name = "#"
-    print(formatted_data.to_markdown(floatfmt="0.2f"))
+    formatted = models_df[list(task_to_assessment.values())].reset_index()
+    formatted.index = range(1, len(formatted) + 1)
+    formatted.index.name = "#"
+    print(formatted.to_markdown(floatfmt="0.2f"))
 
-    models = (models - means) / stds
-
+    models_norm = (models_df - means) / stds
     fig, axes = plt.subplots(2, 2, figsize=(20, 26))
     titles = [
         "Speciesism",
@@ -307,106 +352,17 @@ if __name__ == "__main__":
 
     for i, (assessment, title) in enumerate(zip(assessments, titles)):
         row, col = i // 2, i % 2
-        plot_assessment(axes[row, col], assessment, title, countries, models)
+        if assessment in models_norm.columns:
+            plot_assessment(axes[row, col], assessment, title, countries, models_norm)
+        else:
+            axes[row, col].text(
+                0.5, 0.5, f"No data for {title}", ha="center", va="center"
+            )
 
     plt.tight_layout()
-    fig.savefig("../images/chart.png", bbox_inches="tight", dpi=300)
+    fig.savefig(output_dir / "chart.png", bbox_inches="tight", dpi=300)
+    logger.info(f"Saved chart to {output_dir / 'chart.png'}")
 
-    # Language test
-    logs_path = Path("../logs/lang-test/logs.json")
-    if logs_path.exists():
-        scores, samples = parse_logs(logs_path)
 
-        df_scores = scores.pivot_table(
-            index=["model", "language"], columns="task", values="score"
-        )
-        # Strip _task from column names
-        df_scores.columns = df_scores.columns.str.replace("_task", "")
-
-        df_samples = samples.pivot_table(
-            index=["model", "language"], columns="question", values="score"
-        )
-        df_samples = df_samples[
-            ~df_samples.index.get_level_values(0).isin(exclude_models)
-        ]
-        aggregated = aggregate_samples(df_samples, questions)
-        df_scores["aggregated"] = aggregated
-
-    languages = df_scores.rename(columns=task_to_assessment)[
-        task_to_assessment.values()
-    ]
-    languages.drop(columns=["specieval"], inplace=True)  # Remove aggregated column
-
-    # Get unique models from the first level of the MultiIndex
-    models = languages.index.get_level_values(0).unique()
-
-    # Create figure with subplots (one for each model) - more space
-    fig, axes = plt.subplots(1, len(models), figsize=(12, 7))
-
-    # Loop over models and create tables
-    for i, model in enumerate(models):
-        model_data = languages.loc[model]
-
-        # Get English baseline
-        en_baseline = model_data.loc["en"]
-
-        # Calculate differences from English
-        diff_from_en = model_data.subtract(en_baseline, axis=1)
-
-        # Combine all differences to get min/max
-        vmin, vmax = diff_from_en.min().min(), diff_from_en.max().max()
-        norm = TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
-
-        # Create table
-        table = axes[i].table(
-            cellText=model_data.round(2).values,  # Round to 2 decimals for cleaner look
-            rowLabels=model_data.index,
-            colLabels=model_data.columns,
-            cellLoc="center",
-            loc="center",
-        )
-
-        # Color cells based on difference from English
-        for row_idx, row in enumerate(model_data.index):
-            for col_idx, col in enumerate(model_data.columns):
-                diff_val = diff_from_en.loc[row, col]
-
-                # Adjust color direction based on what "animal-friendly" means
-                if col in ["specieval", "bfas"]:
-                    color_val = diff_val
-                else:
-                    color_val = -diff_val
-
-                color = plt.cm.PiYG(norm(color_val))
-                table[(row_idx + 1, col_idx)].set_facecolor(color)
-
-                # Set text color to be white if the background is dark
-                if np.mean(color[:3]) < 0.5:  # Check if the RGB values are dark
-                    table[(row_idx + 1, col_idx)].set_text_props(color="white")
-
-        # Style improvements
-        axes[i].set_title(model, fontsize=16, fontweight="bold", pad=20)
-        axes[i].axis("off")
-
-        # Adjust table properties for better readability
-        table.auto_set_font_size(False)
-        table.set_fontsize(10)
-        table.scale(1.4, 2.0)  # More vertical spacing
-
-        # Remove ugly grid lines and improve borders
-        for key, cell in table.get_celld().items():
-            cell.set_linewidth(0.5)
-            cell.set_edgecolor("lightgray")
-
-            # Make header row stand out
-            if key[0] == 0:  # Header row
-                cell.set_text_props(weight="bold")
-                cell.set_facecolor("#f0f0f0")
-
-            # Make row labels stand out
-            if key[1] == -1:  # Row labels
-                cell.set_text_props(weight="bold")
-                cell.set_facecolor("#f8f8f8")
-
-    plt.tight_layout(pad=2.0)  # Add more padding
-    plt.savefig("../images/table.png", bbox_inches="tight", dpi=300)
+if __name__ == "__main__":
+    main()
