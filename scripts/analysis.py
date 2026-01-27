@@ -260,7 +260,10 @@ def main() -> None:
     means, stds = df[assessments].mean(), df[assessments].std()
     countries = (countries - means) / stds
 
-    logs_paths = sorted(list(logs_dir.glob("**/logs.json")))
+    # Get paths to logs.json files, ignoring root logs_dir
+    logs_paths = [
+        p for p in sorted(list(logs_dir.glob("**/logs.json"))) if p.parent != logs_dir
+    ]
     logger.info(f"Found {len(logs_paths)} log files.")
 
     # Load allowed models
