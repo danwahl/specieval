@@ -53,6 +53,24 @@ def test_std_metric_too_few_values_is_zero():
     assert metric_fn(_sample_scores([5, NOANSWER])) == 0.0
 
 
+def test_non_noanswer_string_is_refusal():
+    """Any string value (not just NOANSWER) is excluded as a refusal."""
+    assert mean()(_sample_scores([6, "I decline", 6])) == 6.0
+    assert mean_valid()(_scores([6, "oops", 6])).value == 6.0
+
+
+def test_reduction_then_metric_end_to_end():
+    """A partial-refusal reduction feeds a numeric mean into the metric."""
+    reduce = mean_valid()
+    # Two questions: one partly refused (mean over the 3 valid = 6), one fully
+    # refused (-> NOANSWER, dropped by the metric).
+    q1 = reduce(_scores([6, NOANSWER, 6, 6]))
+    q2 = reduce(_scores([NOANSWER, NOANSWER]))
+    assert q1.value == 6.0 and q2.value == NOANSWER
+    task_mean = mean()([SampleScore(score=q1), SampleScore(score=q2)])
+    assert task_mean == 6.0  # only the scorable question counts
+
+
 def test_metrics_named_for_analysis_keys():
     """Result dict keys must stay 'mean'/'std' for scripts/analysis.py."""
     from inspect_ai._util.registry import registry_info

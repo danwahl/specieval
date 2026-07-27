@@ -87,7 +87,9 @@ def std(to_float: ValueToFloat = value_to_float()) -> Metric:
         values = [
             to_float(s.score.value) for s in scores if not _is_refusal(s.score.value)
         ]
-        # Sample std needs n-1 >= 1; matches Inspect's std (np.std ddof=1).
+        # Sample std (np.std ddof=1) over the valid values. With < 2 values we
+        # return 0.0 (Inspect's std returns nan here); harmless since analysis.py
+        # only ever reads the mean metric.
         if len(values) - 1 < 1:
             return 0.0
         return float(np.std(values, ddof=1))
