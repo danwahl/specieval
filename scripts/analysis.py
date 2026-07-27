@@ -79,12 +79,25 @@ def parse_logs(logs_path: Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
             for sample in log["reductions"][0]["samples"]:
                 sample_id = sample.get("sample_id")
                 if sample_id:
+                    # Early runs named the meat/seafood questions am_*/asf_*;
+                    # later runs renamed them la4N_*/se4N_*. They are the same
+                    # questions, so normalize so both schemes feed the composite.
+                    for old, new in (("am_", "la4N_"), ("asf_", "se4N_")):
+                        if sample_id.startswith(old):
+                            sample_id = new + sample_id[len(old) :]
+                            break
+                    # A fully-refused question reduces to NOANSWER ("N"); treat
+                    # any non-numeric value as missing so it is excluded from
+                    # the composite rather than coerced to a number.
+                    value = sample.get("value", np.nan)
+                    if not isinstance(value, (int, float)) or isinstance(value, bool):
+                        value = np.nan
                     samples.append(
                         {
                             "model": model_short,
                             "language": language,
                             "question": sample_id,
-                            "score": sample.get("value", 0),
+                            "score": value,
                         }
                     )
         except (KeyError, IndexError):
