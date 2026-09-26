@@ -22,6 +22,7 @@ from pathlib import Path
 
 from inspect_ai import eval as inspect_eval
 from inspect_ai.scorer import NOANSWER
+
 from specieval.tasks import (
     attitude_meat,
     attitude_seafood,

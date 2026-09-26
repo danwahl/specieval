@@ -2,6 +2,7 @@
 
 import numpy as np
 from inspect_ai.scorer import NOANSWER, SampleScore, Score
+
 from specieval.scorers.refusal import mean, mean_valid, std
 
 

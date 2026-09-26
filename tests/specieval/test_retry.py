@@ -3,6 +3,7 @@
 import pytest
 from inspect_ai.model import ChatMessageAssistant, ModelName, ModelOutput
 from inspect_ai.solver import TaskState
+
 from specieval.solvers.retry import generate_until_answered
 
 

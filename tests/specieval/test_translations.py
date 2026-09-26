@@ -1,6 +1,7 @@
 """Tests for the translations module."""
 
 import pytest
+
 from specieval.translations import Language, Translations
 
 

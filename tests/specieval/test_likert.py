@@ -2,6 +2,7 @@
 
 import pytest
 from inspect_ai.scorer import NOANSWER
+
 from specieval.scorers.likert import likert
 
 
