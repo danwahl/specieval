@@ -91,6 +91,7 @@
   "hy3-preview",
   "hy4-preview",
   "inkling",
+  "jev-1.13",
   "kimi-k2",
   "kimi-k2-0905",
   "kimi-k2.5",
@@ -131,5 +132,6 @@
   "qwen3.7-plus",
   "qwen3.8-flash",
   "qwen3.8-max",
+  "solar-decide",
   "solar-pro4"
 ]
