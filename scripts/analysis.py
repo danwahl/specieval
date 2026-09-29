@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.axes import Axes
 
+from specieval.providers.decisions import DECISIONS_API
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -55,6 +57,9 @@ def parse_logs(logs_path: Path) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         model = log["eval"]["model"]
         model_short = model.split("/")[-1]
+        # Mark decision models, which report a distribution rather than text.
+        if model.startswith(f"{DECISIONS_API}/"):
+            model_short += "*"
 
         task_registry_name = log["eval"]["task_registry_name"]
         task = task_registry_name.split("/")[-1]
@@ -317,7 +322,7 @@ def main() -> None:
 
         # Filter allowed models
         if allowed_models is not None:
-            df_scores = df_scores[df_scores.index.isin(allowed_models)]
+            df_scores = df_scores[df_scores.index.str.rstrip("*").isin(allowed_models)]
 
         if df_scores.empty:
             continue
@@ -327,7 +332,9 @@ def main() -> None:
                 index="model", columns="question", values="score"
             )
             if allowed_models is not None:
-                df_samples = df_samples[df_samples.index.isin(allowed_models)]
+                df_samples = df_samples[
+                    df_samples.index.str.rstrip("*").isin(allowed_models)
+                ]
             df_scores["aggregated"] = aggregate_samples(df_samples, questions)
         else:
             df_scores["aggregated"] = np.nan

@@ -7,10 +7,11 @@ from specieval.scorers.likert import likert
 
 
 class MockOutput:
-    """Mock output object with completion attribute."""
+    """Mock output object with completion and metadata attributes."""
 
-    def __init__(self, completion: str):
+    def __init__(self, completion: str, metadata: dict | None = None):
         self.completion = completion
+        self.metadata = metadata
 
 
 class MockTaskState:
@@ -120,3 +121,16 @@ async def test_likert_explanation_contains_details():
     assert "Raw score: 3" in score.explanation
     assert "Reverse-scored: True" in score.explanation
     assert "Final score: 5" in score.explanation
+
+
+@pytest.mark.asyncio
+async def test_likert_prefers_expected_score():
+    """Decision models' expected score is used (and reversed) over the regex."""
+    scorer_fn = likert()
+    state = MockTaskState("ANSWER: 4.36", reverse=True)
+    state.output.metadata = {"expected_score": 4.36}
+
+    score = await scorer_fn(state, None)
+
+    assert score.value == pytest.approx(3.64)
+    assert score.answer == "4.36"
