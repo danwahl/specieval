@@ -17,6 +17,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Chart row spacing and per-panel allowance for title and axis, in inches.
+ROW_HEIGHT = 0.1
+# Labels and markers fill most of a row (72 points per inch).
+LABEL_SIZE = ROW_HEIGHT * 72 * 0.8
+MARKER_SIZE = (ROW_HEIGHT * 72 * 0.7) ** 2
+PANEL_MARGIN = 1.5
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
@@ -205,28 +212,28 @@ def plot_assessment(
         y_pos[western_indices],
         color="blue",
         marker="s",
-        s=40,
+        s=MARKER_SIZE,
     )
     ax.scatter(
         values[eastern_indices],
         y_pos[eastern_indices],
         color="red",
         marker="^",
-        s=40,
+        s=MARKER_SIZE,
     )
     ax.scatter(
         values[russia_indices],
         y_pos[russia_indices],
         color="gray",
         marker="o",
-        s=40,
+        s=MARKER_SIZE,
     )
     ax.scatter(
         values[model_indices],
         y_pos[model_indices],
         color="green",
         marker="D",
-        s=40,
+        s=MARKER_SIZE,
     )
 
     for i, val in enumerate(values):
@@ -240,7 +247,8 @@ def plot_assessment(
             ax.plot([0, val], [y_pos[i], y_pos[i]], "g-", alpha=0.7)
 
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(names)
+    ax.set_yticklabels(names, fontsize=LABEL_SIZE)
+    ax.set_ylim(-0.5, len(names) - 0.5)
     ax.set_title(title)
     ax.set_xlabel("Z-score")
     ax.set_xlim(-2.0, 2.0)
@@ -379,7 +387,10 @@ def main() -> None:
     print(formatted.to_markdown(floatfmt="0.2f"))
 
     models_norm = (models_df - means) / stds
-    fig, axes = plt.subplots(2, 2, figsize=(20, 26))
+    # Size each panel to its row count so labels never overlap.
+    n_rows = len(countries) + len(models_norm)
+    panel_height = n_rows * ROW_HEIGHT + PANEL_MARGIN
+    fig, axes = plt.subplots(2, 2, figsize=(20, 2 * panel_height))
     titles = [
         "Speciesism",
         "Belief in Animal Sentience",
