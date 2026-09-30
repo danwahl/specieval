@@ -379,7 +379,10 @@ def main() -> None:
     # assessment values in CSV are already spec, bfas, la4N, se4N
     # We just need to make sure we have the same set of columns
     combined_df = pd.concat([models_df, country_results])
-    combined_df = combined_df.sort_values("specieval", ascending=False)
+    # Break displayed ties by name so reruns don't reshuffle the table.
+    combined_df = combined_df.sort_index().sort_values(
+        "specieval", ascending=False, kind="stable", key=lambda s: s.round(2)
+    )
 
     formatted = combined_df[list(task_to_assessment.values())].reset_index()
     formatted.index = range(1, len(formatted) + 1)
