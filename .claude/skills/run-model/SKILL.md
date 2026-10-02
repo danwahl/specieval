@@ -31,19 +31,15 @@ If the model name already exists in the list, skip this step.
 
 ### 3. Generate updated analysis
 
-Run the analysis script and capture the table output:
+Run the analysis script:
 
 ```bash
 uv run scripts/analysis.py --data-file "scripts/data/attitudes data.csv"
 ```
 
-This regenerates the chart image and prints the results table.
+This regenerates `results.json`, the leaderboard table in README.md (between the `<!-- leaderboard:start -->` and `<!-- leaderboard:end -->` markers) and the chart image. Check the new model's row in the README.
 
-### 4. Update README.md
-
-Replace the results table in README.md (the markdown table between the "Each assessment was run 10 times..." paragraph and the "Roughly reproducing Figure 3..." paragraph) with the fresh output from the analysis script.
-
-### 5. Suggest a commit
+### 4. Suggest a commit
 
 Show the user a suggested commit command in the style of existing commits. The format is:
 
@@ -57,5 +53,6 @@ Use the model's common display name rather than the raw model ID. Stage the foll
 - `scripts/allowed_models.json` (if modified)
 - `images/chart.png`
 - `README.md`
+- `results.json`
 
 Do NOT commit automatically — just suggest the command and let the user decide.

@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: If you use SpeciEval, please cite it as below.
+title: "SpeciEval: Evaluating LLM attitudes towards animals"
+authors:
+  - family-names: Wahl
+    given-names: Dan
+repository-code: https://github.com/danwahl/specieval
+url: https://danwahl.github.io/specieval/
+license: MIT
+references:
+  - type: article
+    title: A cross-cultural examination of individual differences in human attitudes about animals
+    authors:
+      - family-names: Hopwood
+        given-names: Christopher J.
+      - family-names: Olaru
+        given-names: Gabriel
+      - family-names: Nissen
+        given-names: Adam T.
+      - family-names: Graça
+        given-names: João
+      - family-names: Dillard
+        given-names: Courtney
+      - family-names: Thompkins
+        given-names: Andie M.
+      - family-names: Waldhorn
+        given-names: Daniela R.
+    journal: Personality Science
+    volume: 6
+    year: 2025
+    doi: 10.1177/27000710251321367
