@@ -52,6 +52,8 @@ def main() -> None:
     questions: Dict[str, str] = {}
     for path, model in ranked_runs(args.logs_dir, load_allowed()):
         run = f"{path.parent.name}/{path.name}"
+        # Unlike the analysis, an unreadable log stops the export, so the
+        # dataset never silently drops a leaderboard run.
         log = read_eval_log(str(path))
         for sample in log.samples or []:
             score = next(iter((sample.scores or {}).values()), None)
@@ -79,6 +81,9 @@ def main() -> None:
         dest = args.out_dir / "logs" / run
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, dest)
+
+    if not samples:
+        raise SystemExit(f"No ranked runs found in {args.logs_dir}")
 
     rows = [
         {
