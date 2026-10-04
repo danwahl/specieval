@@ -18,6 +18,9 @@
   "claude-sonnet-4.5",
   "claude-sonnet-5",
   "claude-sonnet-5.5",
+  "clef",
+  "clef-flash",
+  "d1",
   "deepseek-chat-v3-0324",
   "deepseek-chat-v3.1",
   "deepseek-r1-0528",
@@ -123,6 +126,7 @@
   "nova-premier-v1",
   "nova-pro-v1",
   "o4-mini-deep-research",
+  "pplx-decider-v1-27b",
   "qwen3-235b-a22b",
   "qwen3-30b-a3b",
   "qwen3-30b-a3b-instruct-2507",
@@ -135,5 +139,6 @@
   "qwen3.8-flash",
   "qwen3.8-max",
   "solar-decide",
-  "solar-pro4"
+  "solar-pro4",
+  "tev1-4b-experimental"
 ]
