@@ -3,6 +3,7 @@ message: If you use SpeciEval, please cite it as below.
 title: "SpeciEval: Evaluating LLM attitudes towards animals"
 version: 1.0.0
 date-released: "2026-10-04"
+doi: 10.5281/zenodo.23131952
 authors:
   - family-names: Wahl
     given-names: Daniel
