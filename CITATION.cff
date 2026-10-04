@@ -3,7 +3,7 @@ message: If you use SpeciEval, please cite it as below.
 title: "SpeciEval: Evaluating LLM attitudes towards animals"
 authors:
   - family-names: Wahl
-    given-names: Dan
+    given-names: Daniel
 repository-code: https://github.com/danwahl/specieval
 url: https://danwahl.github.io/specieval/
 license: MIT
