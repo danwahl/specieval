@@ -1,6 +1,7 @@
 cff-version: 1.2.0
 message: If you use SpeciEval, please cite it as below.
 title: "SpeciEval: Evaluating LLM attitudes towards animals"
+date-released: "2025-05-06"
 authors:
   - family-names: Wahl
     given-names: Daniel
