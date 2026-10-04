@@ -56,3 +56,13 @@ Use the model's common display name rather than the raw model ID. Stage the foll
 - `results.json`
 
 Do NOT commit automatically — just suggest the command and let the user decide.
+
+### 5. Suggest a dataset update
+
+Once the user has pushed the commit, suggest updating the [Hugging Face dataset](https://huggingface.co/datasets/drwahl/specieval), whose `main` branch tracks the leaderboard:
+
+```bash
+uv run scripts/export_dataset.py && uvx --from huggingface_hub hf upload drwahl/specieval dataset . --repo-type dataset --delete "logs/*" --commit-message "Add <Model Display Name> (danwahl/specieval@<short commit>)"
+```
+
+The export rewrites `dataset/` from the ranked runs. The upload skips unchanged files, deletes logs of runs no longer ranked, and leaves the dataset card (`README.md`) alone. Do NOT upload automatically; suggest the command and let the user decide.

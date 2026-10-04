@@ -2,7 +2,8 @@
 """Export the leaderboard's runs as a Hugging Face dataset.
 
 Writes the ranked runs' raw Inspect logs, a per-sample table of every
-question epoch, and the question set, all under --out-dir:
+question epoch, and the question set under --out-dir (default: dataset),
+replacing any earlier export there:
 
     data/questions.parquet
     data/samples.parquet
@@ -45,8 +46,12 @@ ASSESSMENTS = {
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--logs-dir", type=Path, default=Path("logs"))
-    parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--out-dir", type=Path, default=Path("dataset"))
     args = parser.parse_args()
+    if args.logs_dir.resolve().is_relative_to(args.out_dir.resolve()):
+        parser.error("--out-dir must not contain --logs-dir")
+    for sub in ("data", "logs"):
+        shutil.rmtree(args.out_dir / sub, ignore_errors=True)
 
     samples: List[Dict[str, Any]] = []
     questions: Dict[str, str] = {}
