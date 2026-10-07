@@ -3,7 +3,9 @@
 Every successful English run listed in a logs.json counts, except those with
 negated wording, with all of a model's epochs pooled. The 95% bootstrap
 intervals resample epochs within each question; the questions themselves are
-fixed. Writes results.json, the README leaderboard and images/chart.png.
+fixed. Country baselines from the Hopwood et al. survey resample respondents,
+and are stored in countries.csv; pass --countries to recompute them.
+Writes results.json, the README leaderboard and images/chart.png.
 """
 
 import argparse
@@ -63,6 +65,10 @@ COLUMNS = [
     Column("se4N", "Sea 4Ns", "lower", ".2f", "Mean on a 1-7 scale"),
 ]
 
+# Provider shown for the country baselines, and their stored bootstrap.
+SURVEY = "Hopwood et al. (2025)"
+COUNTRIES = Path(__file__).parent / "countries.csv"
+
 DECISION_NOTE = (
     "\\* Decision model (see [Usage](#usage)): it answers each question with a "
     "probability distribution over the 7-point scale rather than text, and is "
@@ -92,6 +98,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--readme", default="README.md", help="README to update")
     parser.add_argument(
         "--bootstrap", type=int, default=1000, help="Bootstrap replicates"
+    )
+    parser.add_argument(
+        "--countries",
+        action="store_true",
+        help=f"Recompute the country baselines and update {COUNTRIES.name}",
     )
     return parser.parse_args()
 
@@ -289,6 +300,20 @@ def plot_assessment(
     ax.grid(True)
 
 
+def country_baselines(df: pd.DataFrame, n: int) -> pd.DataFrame:
+    """Score the survey like the models, resampling respondents in each country."""
+    responses = (
+        df.rename_axis("respondent")
+        .reset_index()
+        .melt(
+            id_vars=["respondent", "Country"],
+            value_vars=[c for c in df.columns if c.split("_")[0] in ASSESSMENTS],
+            var_name="question",
+        )
+    )
+    return bootstrap(responses, scores, by="Country", cluster="respondent", n=n)
+
+
 def load_allowed() -> Optional[Set[str]]:
     """Load the ranked-model allow-list."""
     path = Path(__file__).parent / "allowed_models.json"
@@ -323,13 +348,18 @@ def main() -> None:
         if cols:
             df[assessment] = df[cols].mean(axis=1)
 
-    # Country baselines from the survey data, with the same overall score.
-    country_results = df.groupby("Country")[ASSESSMENTS].mean()
+    if args.countries or not COUNTRIES.exists():
+        country_results = country_baselines(df, args.bootstrap)
+        country_results.to_csv(COUNTRIES)
+        logger.info(f"Wrote {COUNTRIES}")
+    else:
+        country_results = pd.read_csv(
+            COUNTRIES, header=[0, 1], index_col=0, float_precision="round_trip"
+        )
     means, stds = df[ASSESSMENTS].mean(), df[ASSESSMENTS].std()
-    countries = (country_results - means) / stds
-    country_results["specieval"] = (
-        df.groupby("Country")[QUESTIONS].mean().apply(composite, axis=1)
-    )
+    countries = (
+        country_results.xs("value", axis=1, level=1)[ASSESSMENTS] - means
+    ) / stds
 
     samples = load_samples(logs_dir, load_allowed())
     if samples.empty:
@@ -350,7 +380,11 @@ def main() -> None:
 
     board = Leaderboard("SpeciEval", COLUMNS, info={"provider": "Provider"})
     board.add(models, info=samples.groupby("model")[["provider"]].first())
-    board.add(country_results, kind="country")
+    board.add(
+        country_results,
+        kind="country",
+        info=pd.DataFrame({"provider": SURVEY}, index=country_results.index),
+    )
     if any(name.endswith("*") for name in models.index):
         board.notes.append(DECISION_NOTE)
     board.save(args.results)
