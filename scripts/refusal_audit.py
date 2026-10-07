@@ -83,7 +83,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Run the per-question admission gate: require every question to have "
-            f">= this fraction of English epochs scorable (default {GATE_MIN_SCORABLE:.0%} "
+            f">= this fraction of English epochs scorable (default {GATE_MIN_SCORABLE:.0%}% "
             "when the flag is given without a value)"
         ),
     )
