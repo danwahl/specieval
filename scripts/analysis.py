@@ -66,7 +66,7 @@ COLUMNS = [
 ]
 
 # Provider shown for the country baselines, and their stored bootstrap.
-SURVEY = "Hopwood et al. (2025)"
+SURVEY = "Hopwood 2025"
 COUNTRIES = Path(__file__).parent / "countries.csv"
 
 DECISION_NOTE = (

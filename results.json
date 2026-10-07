@@ -4764,7 +4764,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -4866,7 +4866,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -4934,7 +4934,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -4968,7 +4968,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5002,7 +5002,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5036,7 +5036,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5070,7 +5070,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5104,7 +5104,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5138,7 +5138,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5172,7 +5172,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5206,7 +5206,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5240,7 +5240,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5308,7 +5308,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5376,7 +5376,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5410,7 +5410,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5444,7 +5444,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5478,7 +5478,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5512,7 +5512,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5546,7 +5546,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5614,7 +5614,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5648,7 +5648,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5682,7 +5682,7 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   },
   {
@@ -5716,12 +5716,12 @@
     }
    },
    "info": {
-    "provider": "Hopwood et al. (2025)"
+    "provider": "Hopwood 2025"
    }
   }
  ],
  "notes": [
   "\\* Decision model (see [Usage](#usage)): it answers each question with a probability distribution over the 7-point scale rather than text, and is scored on that distribution's expected value."
  ],
- "updated": "2026-10-06"
+ "updated": "2026-10-07"
 }
