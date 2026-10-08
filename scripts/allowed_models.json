@@ -143,6 +143,7 @@
   "qwen3.8-flash",
   "qwen3.8-max",
   "solar-decide",
+  "solar-decide-flash",
   "solar-pro4",
   "tev1-4b-experimental"
 ]
