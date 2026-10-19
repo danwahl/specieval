@@ -23,6 +23,7 @@
   "clef-flash",
   "clef-omni",
   "d1",
+  "d1-ultra",
   "deepseek-chat-v3-0324",
   "deepseek-chat-v3.1",
   "deepseek-r1-0528",
@@ -153,5 +154,6 @@
   "solar-decide",
   "solar-decide-flash",
   "solar-pro4",
+  "span-02",
   "tev1-4b-experimental"
 ]
