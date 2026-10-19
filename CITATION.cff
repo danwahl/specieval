@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: If you use SpeciEval, please cite it as below.
 title: "SpeciEval: Evaluating LLM attitudes towards animals"
-version: 1.0.0
-date-released: "2026-10-04"
+version: 1.1.0
+date-released: "2026-10-19"
 doi: 10.5281/zenodo.23131952
 authors:
   - family-names: Wahl
