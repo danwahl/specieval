@@ -1,4 +1,5 @@
 [
+  "bison-1",
   "claude-3-opus",
   "claude-3.5-sonnet",
   "claude-3.7-sonnet",
@@ -113,6 +114,7 @@
   "grok-4.6",
   "grok-4.7",
   "grok-code-fast-1",
+  "groundhog-1",
   "hy3",
   "hy4",
   "hy4-flash",
